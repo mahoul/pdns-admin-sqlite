@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 [ -z ${PDNS_SQLITE_CONF_FILE} ] && PDNS_SQLITE_CONF_FILE=/etc/pdns/pdns-sqlite.conf
 [ -z ${PDNS_SQLITE_DB_FILE} ] && PDNS_SQLITE_DB_FILE=/db/pdns.sqlite
@@ -10,10 +10,8 @@
 
 [ ! -s $PDNS_SQLITE_DB_FILE ] && sqlite3 $PDNS_SQLITE_DB_FILE < $PDNS_SQLITE_SCHEMA_FILE
 
-chown ${PDNS_SQLITE_UID}:${PDNS_SQLITE_GID} $PDNS_SQLITE_DB_FILE
-
-groupmod -g ${PDNS_SQLITE_GID} pdns
-usermod -u ${PDNS_SQLITE_UID} pdns
+[ $(id -u pdns) -ne ${PDNS_SQLITE_UID} ] && usermod -u ${PDNS_SQLITE_UID} pdns
+[ $(id -g pdns) -ne ${PDNS_SQLITE_GID} ] && groupmod -g ${PDNS_SQLITE_GID} pdns
 
 sed \
         -e 's/.*chroot/#chroot/' \
@@ -21,6 +19,7 @@ sed \
         -e 's/.*distributor-threads.*/distributor-threads=3/' \
         -e 's/.*guardian=.*/guardian=no/' \
         -e 's/.*launch=.*/launch=gsqlite3/' \
+        -e 's/.*socket-dir=.*/socket-dir=\/var\/run\/pdns/' \
         -e 's/.*use-logfile/#use-logfile/' \
         -e 's/.*webserver=.*/webserver=yes/' \
         -e 's/.*webserver-address=.*/webserver-address=0.0.0.0/' \
@@ -35,6 +34,8 @@ gsqlite3-database=$PDNS_SQLITE_DB_FILE
 webserver-allow-from=0.0.0.0/0,::0
 write-pid=no
 EOF
+
+chown -R pdns:pdns /etc/pdns /db /var/run/pdns
 
 pdns_server --config-name=sqlite
 

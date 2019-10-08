@@ -21,9 +21,8 @@ services:
 #      PDNS_soa_minimum_ttl: "1200"
 #      PDNS_default_soa_name: "ns1.${DOMAIN}"
 #      PDNS_default_soa_mail: "hostmaster.${DOMAIN}"
-      PDNS_SQLITE_UID: ${PDNS_SQLITE_UID}
-      PDNS_SQLITE_GID: ${PDNS_SQLITE_UID}
-
+      PDNS_SQLITE_UID: "${PDNS_SQLITE_UID}"
+      PDNS_SQLITE_GID: "${PDNS_SQLITE_GID}"
     volumes:
       - "${PDNS_DB_DIR}:/db"
     
@@ -35,9 +34,8 @@ services:
     environment:
 #      PDNS_PROTO: "http"
 #      PDNS_API_KEY: "${PDNS_API_KEY}"
-#      PDNS_HOST: "powerdns"
+      PDNS_HOST: "powerdns"
 #      PDNS_PORT: "8081"
-      PDNS_HOST: "${PDNS_IP}"
 #      PDNSADMIN_SECRET_KEY: "secret"
 #      PDNSADMIN_SQLA_DB_HOST: "mysql"
 #      PDNSADMIN_SQLA_DB_PASSWORD: "${DB_USER_PASSWORD}"
