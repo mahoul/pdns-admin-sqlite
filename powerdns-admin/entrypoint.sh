@@ -69,9 +69,9 @@ INSERT INTO setting (name, value) SELECT * FROM (SELECT 'pdns_api_url',
  '${PDNS_PROTO}://${PDNS_HOST}:${PDNS_PORT}') AS tmp WHERE NOT EXISTS (SELECT name FROM setting WHERE name = 'pdns_api_url') LIMIT 1;
 INSERT INTO setting (name, value) SELECT * FROM (SELECT 'pdns_api_key',
  '${PDNS_API_KEY}') AS tmp WHERE NOT EXISTS (SELECT name FROM setting WHERE name = 'pdns_api_key') LIMIT 1;
+INSERT INTO "setting" VALUES(3,'pdns_version','4.1.1');
 EOF
 
-#INSERT INTO "setting" VALUES(3,'pdns_version','4.1.1');
 #INSERT INTO "user" VALUES(1,'admin','$2b$12$5MCtqsNx.lOeOONxsXNAfOmENU2BV2PfgZYodVVXFXUzSjfPYHjvq','Admin','Admin','admin@localhost.localdomain',NULL,NULL,1);
 
 /usr/bin/gunicorn -t 120 --workers 4 --bind "0.0.0.0:${PDNSADMIN_PORT}" --log-level info app:app
