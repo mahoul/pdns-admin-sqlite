@@ -1,0 +1,11 @@
+docker run \
+-it \
+--rm \
+-v /etc/localtime:/etc/localtime:ro \
+-v $(pwd)/db:/db \
+-p 192.168.2.50:53:53/udp \
+-p 192.168.2.50:53:53 \
+-p 192.168.2.50:8081:8081 \
+-e PDNS_SQLITE_UID=$(id -u) \
+-e PDNS_SQLITE_GID=$(id -g) \
+--name pdns-alpine mahoul/pdns-sqlite

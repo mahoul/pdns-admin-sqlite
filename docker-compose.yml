@@ -1,0 +1,53 @@
+version: '2.2'
+
+services:
+  powerdns:
+    build: powerdns/
+    image: mahoul/pdns-sqlite
+    ports:
+      - "192.168.2.50:53:53"
+      - "192.168.2.50:53:53/udp"
+      - "192.168.2.50:8081:8081"
+    environment:
+#      PDNS_api_key: "secret"
+#      PDNS_master: "yes"
+#      PDNS_api: "yes"
+#      PDNS_webserver: "yes"
+#      PDNS_webserver_address: "0.0.0.0"
+#      PDNS_webserver_allow_from: "0.0.0.0/0"
+#      PDNS_webserver_password: "secret"
+#      PDNS_version_string: "anonymous"
+#      PDNS_default_ttl: "1500"
+#      PDNS_soa_minimum_ttl: "1200"
+#      PDNS_default_soa_name: "ns1.${DOMAIN}"
+#      PDNS_default_soa_mail: "hostmaster.${DOMAIN}"
+      PDNS_SQLITE_UID: 1000
+      PDNS_SQLITE_GID: 1000 
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./db:/db
+    
+  powerdns-admin:
+    build: powerdns-admin/
+    image: mahoul/pdns-admin-sqlite
+    ports:
+      - "192.168.2.50:80:9191"
+    environment:
+#      PDNS_PROTO: "http"
+#      PDNS_API_KEY: "${PDNS_API_KEY}"
+#      PDNS_HOST: "powerdns"
+#      PDNS_PORT: "8081"
+      PDNS_HOST: "192.168.2.50"
+#      PDNSADMIN_SECRET_KEY: "secret"
+#      PDNSADMIN_SQLA_DB_HOST: "mysql"
+#      PDNSADMIN_SQLA_DB_PASSWORD: "${DB_USER_PASSWORD}"
+#      PDNSADMIN_SQLA_DB_NAME: "${DB_NAME}"
+#      PDNSADMIN_SQLA_DB_USER: "${DB_USERNAME}"
+    depends_on:
+      - powerdns
+    links:
+      - powerdns
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./db:/db
+
