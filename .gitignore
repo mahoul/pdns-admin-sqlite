@@ -1,2 +1,4 @@
 .env
-*db*
+db-powerdns/*.sqlite
+db-powerdns-admin/*.sqlite
+

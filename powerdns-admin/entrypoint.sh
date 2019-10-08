@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 #Based in work from Alejandro Escanero Blanco "aescanero" (https://github.com/aescanero/docker-powerdns-admin-alpine)
 #Based in work from Khanh Ngo "k@ndk.name" (https://github.com/ngoduykhanh/PowerDNS-Admin/blob/master/docker/PowerDNS-Admin/Dockerfile)
@@ -13,6 +13,13 @@ DB_MIGRATION_DIR='/opt/pdnsadmin/migrations'
 [ -z ${PDNSADMIN_SECRET_KEY} ] && PDNSADMIN_SECRET_KEY='secret'
 [ -z ${SQLA_DB_FILE} ] && SQLA_DB_FILE='/db/pdns-admin.sqlite'
 
+[ -z ${PDNS_SQLITE_UID} ] && PDNS_SQLITE_UID=1000
+[ -z ${PDNS_SQLITE_GID} ] && PDNS_SQLITE_GID=1000
+
+[ $(id -u pdnsadmin) -ne ${PDNS_SQLITE_UID} ] && usermod -u ${PDNS_SQLITE_UID} pdnsadmin
+[ $(id -g pdnsadmin) -ne ${PDNS_SQLITE_GID} ] && groupmod -g ${PDNS_SQLITE_GID} pdnsadmin
+
+chown -R pdnsadmin:pdnsadmin /db /opt/pdnsadmin
 
 cat >/opt/pdnsadmin/config.py <<EOF
 import os
@@ -74,5 +81,5 @@ EOF
 
 #INSERT INTO "user" VALUES(1,'admin','$2b$12$5MCtqsNx.lOeOONxsXNAfOmENU2BV2PfgZYodVVXFXUzSjfPYHjvq','Admin','Admin','admin@localhost.localdomain',NULL,NULL,1);
 
-/usr/bin/gunicorn -t 120 --workers 4 --bind "0.0.0.0:${PDNSADMIN_PORT}" --log-level info app:app
+su -c "/usr/bin/gunicorn -t 120 --workers 4 --bind "0.0.0.0:${PDNSADMIN_PORT}" --log-level info app:app" pdnsadmin
 

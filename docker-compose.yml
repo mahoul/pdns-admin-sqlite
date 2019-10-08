@@ -41,6 +41,8 @@ services:
 #      PDNSADMIN_SQLA_DB_PASSWORD: "${DB_USER_PASSWORD}"
 #      PDNSADMIN_SQLA_DB_NAME: "${DB_NAME}"
 #      PDNSADMIN_SQLA_DB_USER: "${DB_USERNAME}"
+      PDNS_SQLITE_UID: "${PDNS_SQLITE_UID}"
+      PDNS_SQLITE_GID: "${PDNS_SQLITE_GID}"
     depends_on:
       - powerdns
     links:
