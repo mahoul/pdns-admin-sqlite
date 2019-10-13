@@ -1,4 +1,4 @@
 .env
 db-powerdns/*.sqlite
 db-powerdns-admin/*.sqlite
-
+ssl-certs/*

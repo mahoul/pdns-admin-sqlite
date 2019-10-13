@@ -2,19 +2,14 @@ FROM alpine:3.10
 MAINTAINER "Enrique Gil Palau <mahoul@gmail.com>"
 
 RUN apk add --no-cache \
-	pdns-backend-sqlite3 \
-	pdns-doc \
-	shadow \
-	sqlite && \
-    mkdir /db /var/run/pdns && \
-    chown -R pdns:pdns /etc/pdns /db /var/run/pdns
-    
+	bind-tools \
+	pdns-recursor
+
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod u+x /entrypoint.sh
 
-EXPOSE 5301
-EXPOSE 5301/udp
-EXPOSE 8081
+EXPOSE 5300
+EXPOSE 5300/udp
 
 ENTRYPOINT ["/entrypoint.sh"]
 

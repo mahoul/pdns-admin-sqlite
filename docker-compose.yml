@@ -1,52 +1,115 @@
 version: '2.2'
 
 services:
+
+  dnsmasq:
+    build: dnsmasq/
+    image: mahoul/dnsmasq
+    ports:
+      - "${PDNS_IP}:53:53"
+      - "${PDNS_IP}:53:53/udp"
+    restart: unless-stopped
+
+  powerdns-recursor:
+    build: powerdns-recursor/
+    image: mahoul/pdns-recursor
+#    ports:
+#      - "${PDNS_IP}:5300:5300"
+#      - "${PDNS_IP}:5300:5300/udp"
+    volumes:
+      - "${PDNS_FORWARD_ZONES}:/etc/pdns/forward-zones-input"
+    restart: unless-stopped
+
   powerdns:
     build: powerdns/
     image: mahoul/pdns-sqlite
     ports:
-      - "${PDNS_IP}:53:53"
-      - "${PDNS_IP}:53:53/udp"
-      - "${PDNS_IP}:8081:8081"
+      - "${PDNS_IP}:5301:5301"
+      - "${PDNS_IP}:5301:5301/udp"
+#      - "${PDNS_IP}:5302:5301"
+#      - "${PDNS_IP}:5302:5301/udp"
+#      - "${PDNS_IP}:8081:8081"
     environment:
-#      PDNS_api_key: "secret"
-#      PDNS_master: "yes"
-#      PDNS_api: "yes"
-#      PDNS_webserver: "yes"
-#      PDNS_webserver_address: "0.0.0.0"
-#      PDNS_webserver_allow_from: "0.0.0.0/0"
-#      PDNS_webserver_password: "secret"
-#      PDNS_version_string: "anonymous"
-#      PDNS_default_ttl: "1500"
-#      PDNS_soa_minimum_ttl: "1200"
-#      PDNS_default_soa_name: "ns1.${DOMAIN}"
-#      PDNS_default_soa_mail: "hostmaster.${DOMAIN}"
-      PDNS_SQLITE_UID: "${PDNS_SQLITE_UID}"
-      PDNS_SQLITE_GID: "${PDNS_SQLITE_GID}"
+      # - PDNS_api_key
+      # - PDNS_master
+      # - PDNS_api
+      # - PDNS_webserver
+      # - PDNS_webserver_address
+      # - PDNS_webserver_allow_from
+      # - PDNS_webserver_password
+      # - PDNS_version_string
+      # - PDNS_default_ttl
+      # - PDNS_soa_minimum_ttl
+      # - PDNS_default_soa_name
+      # - PDNS_default_soa_mail
+      - PDNS_SQLITE_UID
+      - PDNS_SQLITE_GID
+      - PDNS_UPDATES
+      - HTTPS_METHOD=nohttp
+      - VIRTUAL_HOST=$VIRTUAL_HOST_PDNS
+      - VIRTUAL_PORT=8081
     volumes:
       - "${PDNS_DB_DIR}:/db"
-    
+    restart: unless-stopped
+  
   powerdns-admin:
     build: powerdns-admin/
     image: mahoul/pdns-admin-sqlite
-    ports:
-      - "${PDNS_ADMIN_IP}:80:9191"
+#    ports:
+#      - "${PDNS_ADMIN_IP}:80:9191"
     environment:
 #      PDNS_PROTO: "http"
 #      PDNS_API_KEY: "${PDNS_API_KEY}"
-      PDNS_HOST: "powerdns"
+      - PDNS_HOST=powerdns
 #      PDNS_PORT: "8081"
 #      PDNSADMIN_SECRET_KEY: "secret"
 #      PDNSADMIN_SQLA_DB_HOST: "mysql"
 #      PDNSADMIN_SQLA_DB_PASSWORD: "${DB_USER_PASSWORD}"
 #      PDNSADMIN_SQLA_DB_NAME: "${DB_NAME}"
 #      PDNSADMIN_SQLA_DB_USER: "${DB_USERNAME}"
-      PDNS_SQLITE_UID: "${PDNS_SQLITE_UID}"
-      PDNS_SQLITE_GID: "${PDNS_SQLITE_GID}"
+      - PDNS_SQLITE_UID
+      - PDNS_SQLITE_GID
+#      VIRTUAL_PROTO: https
+#      VIRTUAL_PORT: 9191
+      - HTTPS_METHOD=nohttp
+      - VIRTUAL_HOST=$VIRTUAL_HOST_PDA
+      - VIRTUAL_PORT=9191
+#      HTTPS_METHOD: noredirect
     depends_on:
       - powerdns
     links:
       - powerdns
     volumes:
       - "${PDNS_ADMIN_DB_DIR}:/db"
+    restart: unless-stopped
+
+  build-ssl-certs:
+    build: build-ssl-certs/
+    image: mahoul/build-ssl-certs
+    environment:
+      - PDNS_SQLITE_GID
+      - PDNS_SQLITE_UID
+      - SSL_COUNTRY
+      - SSL_STATE
+      - SSL_LOCALITY
+      - SSL_CODE
+      - SSL_ADDRESS
+      - SSL_ORG
+      - SSL_ORG_UNIT
+      - SSL_COMMON
+      - SSL_EMAIL
+    volumes:
+      - "${SSL_CERTS_PATH}:/tmp/ssl-certs"
+
+  nginx-proxy-https:
+    image: jwilder/nginx-proxy
+    ports:
+      - "${PDNS_IP}:80:80"
+      - "${PDNS_IP}:443:443"
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "${SSL_CERTS_PATH}:/etc/nginx/certs"
+    depends_on:
+      - build-ssl-certs
+    restart: always
 

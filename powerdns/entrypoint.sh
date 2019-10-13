@@ -19,6 +19,7 @@ sed \
         -e 's/.*distributor-threads.*/distributor-threads=3/' \
         -e 's/.*guardian=.*/guardian=no/' \
         -e 's/.*launch=.*/launch=gsqlite3/' \
+        -e 's/.*local-port=.*/local-port=5301/' \
         -e 's/.*socket-dir=.*/socket-dir=\/var\/run\/pdns/' \
         -e 's/.*use-logfile/#use-logfile/' \
         -e 's/.*webserver=.*/webserver=yes/' \
@@ -26,10 +27,19 @@ sed \
         -e 's/.*wildcards/#wildcards/' \
         /etc/pdns/pdns.conf > $PDNS_SQLITE_CONF_FILE
 
+
+if [ -n ${PDNS_UPDATES} ] && [ "${PDNS_UPDATES}" == "yes" ]; then
+	cat <<-EOF >> $PDNS_SQLITE_CONF_FILE
+	allow-dnsupdate-from=0.0.0.0/0,::0
+	dnsupdate=yes
+	EOF
+fi
+
 cat << EOF >> $PDNS_SQLITE_CONF_FILE
 api=yes
 api-key=$PDNS_SQLITE_API_KEY
 disable-syslog=yes
+dnsupdate=yes
 gsqlite3-database=$PDNS_SQLITE_DB_FILE
 webserver-allow-from=0.0.0.0/0,::0
 write-pid=no
