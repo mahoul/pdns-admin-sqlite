@@ -31,8 +31,10 @@ PowerDNS-Admin.
  
 ## Persistent storage
 
-- ssl-certs: ssl certificates and configs files for their generation
-- db-powerdns: PowerDNS DB
-- db-powerdns-admin: PowerDNS-Admin DB
+| folder | contains |
+|--------|----------|
+|ssl-certs | ssl certificates and configs files for their generation |
+|db-powerdns | PowerDNS DB |
+|db-powerdns-admin | PowerDNS-Admin DB |
 
 
