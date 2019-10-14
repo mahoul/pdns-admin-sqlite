@@ -21,10 +21,12 @@ SSL_KEY=$SSL_PATH/${SSL_COMMON}.key
 [ $(id -u ssl-user ) -ne ${PDNS_SQLITE_UID} ] && usermod -u ${PDNS_SQLITE_UID} ssl-user
 [ $(id -g ssl-user ) -ne ${PDNS_SQLITE_GID} ] && groupmod -g ${PDNS_SQLITE_GID} ssl-user
 
-[ -s $SSL_CONF ] && [ -s $SSL_CERT ] && [ -s $SSL_KEY ] && exit 0
-
 su -c "sh -x -s" ssl-user <<EOS
-cat <<-EOF > $SSL_CONF
+for common in $(echo $SSL_COMMON | tr "," " "); do
+
+[ -s ${SSL_CONF}-\${common} ] && [ -s $SSL_PATH/\${common}.crt ] && [ -s $SSL_PATH/\${common}.key ] && continue
+
+cat <<-EOF > ${SSL_CONF}-\${common}
 
 [ req ]
 prompt  = no
@@ -39,8 +41,8 @@ postalCode             = ${SSL_CODE}              # L/postalcode=
 streetAddress          = ${SSL_ADDRESS}           # L/street=
 organizationName       = ${SSL_ORG}               # O=
 organizationalUnitName = ${SSL_ORG_UNIT}          # OU=
-commonName             = ${SSL_COMMON}            # CN=
-emailAddress           = ${SSL_EMAIL}             # CN/emailAddress=
+commonName             = \${common}                # CN=
+emailAddress           = root@\${common}           # CN/emailAddress=
 
 EOF
 
@@ -49,11 +51,12 @@ openssl req \
         -nodes \
         -days 365 \
         -newkey rsa:2048 \
-        -config $SSL_CONF \
-        -keyout $SSL_KEY \
-        -out $SSL_CERT
+        -config $SSL_CONF-\${common} \
+        -keyout $SSL_PATH/\${common}.key \
+        -out $SSL_PATH/\${common}.crt
 
 chmod 664 $SSL_PATH/*
 
+done
 EOS
 
