@@ -29,3 +29,10 @@ If docker-compose brings all the containers succesfully, you may have access
 to https://pdns.localhost to PowerDNS API and to https://pda.localhost for
 PowerDNS-Admin.
  
+## Persistent storage
+
+- ssl-certs: ssl certificates and configs files for their generation
+- db-powerdns: PowerDNS DB
+- db-powerdns-admin: PowerDNS-Admin DB
+
+
